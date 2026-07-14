@@ -1,6 +1,6 @@
 # External Shader Editor
 
-External Shader Editor is a Godot 4.6 editor plugin that opens `.gdshader` and `.gdshaderinc` files in a configurable external editor from the FileSystem dock and shader error links.
+External Shader Editor is a Godot 4.x editor plugin that opens `.gdshader` and `.gdshaderinc` files in a configurable external editor from the FileSystem dock and shader error links.
 
 ## Installation and activation
 
@@ -107,12 +107,12 @@ When Exec Path ends in `.app`, the macOS launcher starts `/usr/bin/open` with `-
 
 ## Current limitations
 
-- The plugin targets and is validated against Godot 4.6. Earlier Godot 4 releases may not expose the same context-menu or editor notification APIs.
+- The plugin targets Godot 4.0 and later 4.x releases. Godot 4.0 through 4.2 do not provide clickable shader file links in the Output panel, so Output-link interception is available starting with Godot 4.3. FileSystem double-click and context-menu actions remain available on every supported 4.x release.
 - Preset updates are observed while the plugin is enabled. Re-enabling the plugin preserves the stored Exec Path and Exec Flags rather than reapplying the stored preset.
 - The plugin does not discover every installed editor. Preset paths are intentionally editable defaults.
 - CLI command names cannot be existence-checked before launch; a missing command is reported when process creation fails.
 - Each selected shader file starts one independent open request. The external editor may consolidate those requests into one window.
-- Double-click and Output-link support relies on Godot 4.6 editor UI internals because no dedicated public interception API is available. These integrations may need adjustment for later Godot releases.
+- Double-click and Output-link support relies on stable Godot 4.x editor UI internals because no dedicated public interception API is available. Godot 4.0 through 4.3 also use a compatibility adapter for FileSystem context-menu actions; Godot 4.4 and later use the public `EditorContextMenuPlugin` API. These integrations may need adjustment for later Godot releases.
 
 ## Tests
 
@@ -125,3 +125,5 @@ godot --headless --path . --script tests/test_external_shader_editor.gd
 If Godot is not available as `godot` on `PATH`, replace it with the path to your Godot executable.
 
 The tests cover quoted and unquoted templates, paths with spaces, placeholder replacement, escaped quotes, empty arguments, unterminated quotes, the macOS `/usr/bin/open` bundle argument layout, and shader error-link parsing. They verify argument construction without launching an external editor.
+
+Compatibility has been verified with the standard Godot builds for 4.0.4, 4.1.4, 4.2.2, 4.3, 4.4.1, 4.5.2, and 4.6.3, plus the Godot 4.6 Mono build.

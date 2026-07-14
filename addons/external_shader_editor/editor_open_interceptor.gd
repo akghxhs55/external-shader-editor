@@ -11,14 +11,20 @@ const CSHARP_DELEGATE_CALLABLE := "Delegate::Invoke"
 
 var _launcher: LauncherScript
 var _settings: SettingsScript
+var _editor_interface: EditorInterface
 var _hooks: Array[Dictionary] = []
 
 
-func setup(launcher: LauncherScript, settings: SettingsScript) -> void:
+func setup(
+	launcher: LauncherScript,
+	settings: SettingsScript,
+	editor_interface: EditorInterface
+) -> void:
 	if not _hooks.is_empty():
 		return
 	_launcher = launcher
 	_settings = settings
+	_editor_interface = editor_interface
 	_install_hooks()
 	_report_missing_hooks()
 
@@ -40,6 +46,7 @@ func shutdown() -> void:
 	_hooks.clear()
 	_launcher = null
 	_settings = null
+	_editor_interface = null
 
 
 func parse_shader_error_meta(meta: String) -> Dictionary:
@@ -63,7 +70,10 @@ func parse_shader_error_meta(meta: String) -> Dictionary:
 
 
 func _install_hooks() -> void:
-	var filesystem_dock := EditorInterface.get_file_system_dock()
+	if _editor_interface == null:
+		return
+
+	var filesystem_dock := _editor_interface.get_file_system_dock()
 	_hook_descendant_connections(
 		filesystem_dock,
 		{
@@ -72,7 +82,7 @@ func _install_hooks() -> void:
 		}
 	)
 
-	var editor_root := EditorInterface.get_base_control()
+	var editor_root := _editor_interface.get_base_control()
 	_hook_descendant_connections(editor_root, {OUTPUT_META_METHOD: _on_output_meta_clicked})
 
 
@@ -126,12 +136,14 @@ func _report_missing_hooks() -> void:
 	var required_methods := [
 		FILESYSTEM_TREE_METHOD,
 		FILESYSTEM_LIST_METHOD,
-		OUTPUT_META_METHOD,
 	]
+	var version := Engine.get_version_info()
+	if int(version.get("major", 0)) > 4 or int(version.get("minor", 0)) >= 3:
+		required_methods.append(OUTPUT_META_METHOD)
 	for method in required_methods:
 		if not hooked_methods.has(method):
 			push_warning(
-				"External Shader Editor could not install the Godot 4.6 integration hook for %s."
+				"External Shader Editor could not install the Godot 4.x integration hook for %s."
 				% method
 			)
 

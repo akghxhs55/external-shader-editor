@@ -6,11 +6,13 @@ const SettingsScript := preload("res://addons/external_shader_editor/external_sh
 const MACOS_OPEN_EXECUTABLE := "/usr/bin/open"
 
 var _settings: SettingsScript
+var _editor_interface: EditorInterface
 var _tokenizer := CommandLineTokenizerScript.new()
 
 
-func setup(settings: SettingsScript) -> void:
+func setup(settings: SettingsScript, editor_interface: EditorInterface = null) -> void:
 	_settings = settings
+	_editor_interface = editor_interface
 
 
 func open_shader_files(resource_paths: Array[String]) -> void:
@@ -169,5 +171,11 @@ func _is_supported_shader_path(path: String) -> bool:
 
 func _report_error(message: String) -> void:
 	push_error(message)
-	if Engine.is_editor_hint():
-		EditorInterface.get_editor_toaster().push_toast(message, EditorToaster.SEVERITY_ERROR)
+	if (
+		Engine.is_editor_hint()
+		and _editor_interface != null
+		and _editor_interface.has_method(&"get_editor_toaster")
+	):
+		var toaster: Object = _editor_interface.call(&"get_editor_toaster")
+		if toaster != null:
+			toaster.call(&"push_toast", message, 2)

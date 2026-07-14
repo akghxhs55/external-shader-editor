@@ -2,7 +2,7 @@ extends SceneTree
 
 const TokenizerScript := preload("res://addons/external_shader_editor/command_line_tokenizer.gd")
 const LauncherScript := preload("res://addons/external_shader_editor/external_editor_launcher.gd")
-const ContextMenuScript := preload("res://addons/external_shader_editor/shader_context_menu.gd")
+const ContextMenuActionsScript := preload("res://addons/external_shader_editor/shader_context_menu_actions.gd")
 const PluginScript := preload("res://addons/external_shader_editor/external_shader_editor_plugin.gd")
 const InterceptorScript := preload("res://addons/external_shader_editor/editor_open_interceptor.gd")
 
@@ -169,12 +169,12 @@ func _test_callable_method_inspection() -> void:
 
 func _test_context_menu_labels() -> void:
 	_assert_equal(
-		ContextMenuScript.get_menu_label(true),
+		ContextMenuActionsScript.get_menu_label_for_default(true),
 		"Open Shader in Godot Editor",
 		"external default exposes the Godot editor context action"
 	)
 	_assert_equal(
-		ContextMenuScript.get_menu_label(false),
+		ContextMenuActionsScript.get_menu_label_for_default(false),
 		"Open Shader in External Editor",
 		"Godot default exposes the external editor context action"
 	)
