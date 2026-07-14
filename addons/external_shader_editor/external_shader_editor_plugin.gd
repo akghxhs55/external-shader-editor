@@ -20,7 +20,7 @@ func _enter_tree() -> void:
 	_launcher.setup(_settings)
 
 	_context_menu = ContextMenuScript.new()
-	_context_menu.setup(_launcher)
+	_context_menu.setup(_launcher, _settings)
 	add_context_menu_plugin(EditorContextMenuPlugin.CONTEXT_SLOT_FILESYSTEM, _context_menu)
 
 	_interceptor = InterceptorScript.new()
@@ -29,7 +29,7 @@ func _enter_tree() -> void:
 
 func _install_editor_integrations() -> void:
 	if _interceptor != null and _launcher != null:
-		_interceptor.setup(_launcher)
+		_interceptor.setup(_launcher, _settings)
 
 
 func _exit_tree() -> void:

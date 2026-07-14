@@ -1,10 +1,10 @@
 @tool
 extends RefCounted
 
+const KEY_DEFAULT_EDITOR := "external_shader_editor/default_editor"
 const KEY_EDITOR_PRESET := "external_shader_editor/editor_preset"
 const KEY_EXEC_PATH := "external_shader_editor/exec_path"
 const KEY_EXEC_FLAGS := "external_shader_editor/exec_flags"
-const LEGACY_KEY_USE_EXTERNAL_EDITOR := "external_shader_editor/use_external_editor"
 
 const GODOT_KEY_USE_EXTERNAL_EDITOR := "text_editor/external/use_external_editor"
 const GODOT_KEY_EXEC_PATH := "text_editor/external/exec_path"
@@ -14,6 +14,9 @@ const PRESET_CUSTOM := 0
 const PRESET_RIDER := 1
 const PRESET_VS_CODE := 2
 
+const DEFAULT_EDITOR_EXTERNAL := 0
+const DEFAULT_EDITOR_GODOT := 1
+
 var _editor_settings: EditorSettings
 var _observed_preset: int = PRESET_CUSTOM
 var _applying_preset := false
@@ -21,7 +24,6 @@ var _applying_preset := false
 
 func initialize(editor_settings: EditorSettings) -> void:
 	_editor_settings = editor_settings
-	_remove_legacy_settings()
 
 	var godot_external_settings := _read_godot_external_editor_settings()
 	var should_import_godot_settings: bool = bool(godot_external_settings["valid"])
@@ -34,6 +36,13 @@ func initialize(editor_settings: EditorSettings) -> void:
 		default_exec_path = godot_external_settings["exec_path"]
 		default_exec_flags = godot_external_settings["exec_flags"]
 
+	_register_setting(
+		KEY_DEFAULT_EDITOR,
+		DEFAULT_EDITOR_EXTERNAL,
+		TYPE_INT,
+		PROPERTY_HINT_ENUM,
+		"External Editor,Godot Editor"
+	)
 	_register_setting(
 		KEY_EDITOR_PRESET,
 		default_preset,
@@ -64,6 +73,12 @@ func shutdown() -> void:
 	if _editor_settings != null and _editor_settings.settings_changed.is_connected(_on_settings_changed):
 		_editor_settings.settings_changed.disconnect(_on_settings_changed)
 	_editor_settings = null
+
+
+func is_external_editor_default() -> bool:
+	if _editor_settings == null:
+		return true
+	return int(_editor_settings.get_setting(KEY_DEFAULT_EDITOR)) == DEFAULT_EDITOR_EXTERNAL
 
 
 func get_editor_preset() -> int:
@@ -137,11 +152,6 @@ func _register_setting(
 		"hint_string": hint_string,
 	}
 	_editor_settings.add_property_info(property_info)
-
-
-func _remove_legacy_settings() -> void:
-	if _editor_settings.has_setting(LEGACY_KEY_USE_EXTERNAL_EDITOR):
-		_editor_settings.erase(LEGACY_KEY_USE_EXTERNAL_EDITOR)
 
 
 func _read_godot_external_editor_settings() -> Dictionary:

@@ -10,11 +10,12 @@ External Shader Editor is a Godot 4.6 editor plugin that opens `.gdshader` and `
 
 ## Usage
 
-You can open a supported shader in three ways:
+By default, supported shaders open in the external editor when you:
 
 - Double-click it in the FileSystem dock.
 - Click its file-and-line link in the Output panel.
-- Select one or more files in the FileSystem dock, right-click, and choose **Open Shader in External Editor**.
+
+When the external editor is the default, select one or more files in the FileSystem dock, right-click, and choose **Open Shader in Godot Editor** to open them in Godot instead. If Godot is the default, the context action changes to **Open Shader in External Editor**.
 
 All supported shader files in a multi-selection are opened. Unsupported paths in a mixed selection are ignored.
 
@@ -22,11 +23,12 @@ All supported shader files in a multi-selection are opened. Unsupported paths in
 
 Open **Editor > Editor Settings** and search for `external_shader_editor`. The settings are editor-wide.
 
-| Setting                                | Purpose                                                                          |
-|----------------------------------------|----------------------------------------------------------------------------------|
-| `external_shader_editor/editor_preset` | `Custom`, `Rider`, or `VS Code`; fills the two execution settings when selected. |
-| `external_shader_editor/exec_path`     | Executable, command, or macOS `.app` bundle path.                                |
-| `external_shader_editor/exec_flags`    | Command-line argument template with quote and placeholder support.               |
+| Setting                                 | Purpose                                                                                            |
+|-----------------------------------------|----------------------------------------------------------------------------------------------------|
+| `external_shader_editor/default_editor` | `External Editor` or `Godot Editor`; controls double-clicks and error links. Defaults to external. |
+| `external_shader_editor/editor_preset`  | `Custom`, `Rider`, or `VS Code`; fills the two execution settings when selected.                   |
+| `external_shader_editor/exec_path`      | Executable, command, or macOS `.app` bundle path.                                                  |
+| `external_shader_editor/exec_flags`     | Command-line argument template with quote and placeholder support.                                 |
 
 Presets are only editable starting-point helpers. Selecting Rider or VS Code writes suggested values to **Exec Path** and **Exec Flags** once at selection time. You may freely edit those values afterward. The preset is not a source of truth, and editing execution values does not automatically switch it to Custom.
 

@@ -2,6 +2,7 @@
 extends RefCounted
 
 const LauncherScript := preload("res://addons/external_shader_editor/external_editor_launcher.gd")
+const SettingsScript := preload("res://addons/external_shader_editor/external_shader_editor_settings.gd")
 
 const FILESYSTEM_TREE_METHOD := &"FileSystemDock::_tree_activate_file"
 const FILESYSTEM_LIST_METHOD := &"FileSystemDock::_file_list_activate_file"
@@ -9,13 +10,15 @@ const OUTPUT_META_METHOD := &"EditorLog::_meta_clicked"
 const CSHARP_DELEGATE_CALLABLE := "Delegate::Invoke"
 
 var _launcher: LauncherScript
+var _settings: SettingsScript
 var _hooks: Array[Dictionary] = []
 
 
-func setup(launcher: LauncherScript) -> void:
+func setup(launcher: LauncherScript, settings: SettingsScript) -> void:
 	if not _hooks.is_empty():
 		return
 	_launcher = launcher
+	_settings = settings
 	_install_hooks()
 	_report_missing_hooks()
 
@@ -36,6 +39,7 @@ func shutdown() -> void:
 
 	_hooks.clear()
 	_launcher = null
+	_settings = null
 
 
 func parse_shader_error_meta(meta: String) -> Dictionary:
@@ -138,7 +142,7 @@ func _on_filesystem_tree_item_activated() -> void:
 		var tree := hook["emitter"] as Tree
 		var selected_item := tree.get_selected() if tree != null else null
 		var path := str(selected_item.get_metadata(0)) if selected_item != null else ""
-		if _launcher != null and _is_supported_shader_path(path):
+		if _should_open_in_external_editor(path):
 			if _launcher.open_shader_file(path):
 				return
 
@@ -152,7 +156,7 @@ func _on_filesystem_list_item_activated(index: int) -> void:
 		var path := ""
 		if file_list != null and index >= 0 and index < file_list.item_count:
 			path = str(file_list.get_item_metadata(index))
-		if _launcher != null and _is_supported_shader_path(path):
+		if _should_open_in_external_editor(path):
 			if _launcher.open_shader_file(path):
 				return
 
@@ -162,7 +166,7 @@ func _on_filesystem_list_item_activated(index: int) -> void:
 func _on_output_meta_clicked(meta: Variant) -> void:
 	var hook := _find_hook_for_replacement(_on_output_meta_clicked)
 	var location := parse_shader_error_meta(str(meta))
-	if _launcher != null and bool(location["valid"]):
+	if bool(location["valid"]) and _should_open_in_external_editor(str(location["path"])):
 		if _launcher.open_shader_file(
 			str(location["path"]),
 			int(location["line"]),
@@ -191,3 +195,12 @@ func _call_original(hook: Dictionary, arguments: Array) -> void:
 func _is_supported_shader_path(path: String) -> bool:
 	var extension := path.get_extension().to_lower()
 	return extension == "gdshader" or extension == "gdshaderinc"
+
+
+func _should_open_in_external_editor(path: String) -> bool:
+	return (
+		_launcher != null
+		and _settings != null
+		and _settings.is_external_editor_default()
+		and _is_supported_shader_path(path)
+	)

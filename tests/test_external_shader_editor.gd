@@ -16,6 +16,7 @@ func _init() -> void:
 	_test_command_path_resolution()
 	_test_shader_error_meta_parsing()
 	_test_callable_method_inspection()
+	_test_context_menu_labels()
 
 	if _failure_count == 0:
 		print("External Shader Editor tests passed.")
@@ -163,6 +164,19 @@ func _test_callable_method_inspection() -> void:
 	_assert_true(
 		interceptor._can_inspect_callable_method(custom_callable),
 		"inspectable custom callables remain eligible for editor hooks"
+	)
+
+
+func _test_context_menu_labels() -> void:
+	_assert_equal(
+		ContextMenuScript.get_menu_label(true),
+		"Open Shader in Godot Editor",
+		"external default exposes the Godot editor context action"
+	)
+	_assert_equal(
+		ContextMenuScript.get_menu_label(false),
+		"Open Shader in External Editor",
+		"Godot default exposes the external editor context action"
 	)
 
 
