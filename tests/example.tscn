@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://t5tkel11g0rh"]
+
+[ext_resource type="Shader" uid="uid://qnqaohif4uak" path="res://tests/example.gdshader" id="1_qr6la"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_p7mco"]
+shader = ExtResource("1_qr6la")
+
+[node name="Example" type="Node2D" unique_id=876102673]
+material = SubResource("ShaderMaterial_p7mco")

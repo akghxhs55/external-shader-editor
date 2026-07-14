@@ -1,0 +1,15 @@
+# Godot generated files
+.godot/
+
+# JetBrains IDE project files
+.idea/
+*.iml
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Editor temporary files
+*~
+*.swp
+*.swo
