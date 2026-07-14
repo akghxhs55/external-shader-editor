@@ -42,7 +42,7 @@ func open_shader_file(resource_path: String, line: int = 1, column: int = 1) -> 
 	if executable.is_empty():
 		_report_error("External Shader Editor Exec Path is empty.")
 		return false
-	if not _validate_absolute_executable(executable):
+	if not _validate_executable(executable):
 		return false
 
 	var project_path := ProjectSettings.globalize_path("res://").simplify_path()
@@ -112,9 +112,42 @@ func build_macos_bundle_launch_arguments(
 	return launch_arguments
 
 
-func _validate_absolute_executable(executable: String) -> bool:
+func resolve_command_path(command: String, search_path: String) -> String:
+	if command.is_empty() or search_path.is_empty():
+		return ""
+
+	var path_separator := ";" if OS.get_name() == "Windows" else ":"
+	var candidates := PackedStringArray([command])
+	if OS.get_name() == "Windows" and command.get_extension().is_empty():
+		var path_extensions := OS.get_environment("PATHEXT")
+		if path_extensions.is_empty():
+			path_extensions = ".COM;.EXE;.BAT;.CMD"
+		for extension in path_extensions.split(";", false):
+			candidates.append(command + extension.strip_edges())
+
+	for directory in search_path.split(path_separator, false):
+		var normalized_directory := directory.strip_edges().trim_prefix('"').trim_suffix('"')
+		if normalized_directory.is_empty():
+			continue
+		for candidate in candidates:
+			var candidate_path := normalized_directory.path_join(candidate).simplify_path()
+			if FileAccess.file_exists(candidate_path):
+				return candidate_path
+
+	return ""
+
+
+func _validate_executable(executable: String) -> bool:
 	if not executable.is_absolute_path():
-		# Command names are resolved by the OS.
+		if executable.contains("/") or executable.contains("\\"):
+			if FileAccess.file_exists(executable):
+				return true
+			_report_error("External editor executable does not exist: %s" % executable)
+			return false
+
+		if resolve_command_path(executable, OS.get_environment("PATH")).is_empty():
+			_report_error("External editor command was not found on PATH: %s" % executable)
+			return false
 		return true
 
 	if OS.get_name() == "macOS" and executable.to_lower().ends_with(".app"):

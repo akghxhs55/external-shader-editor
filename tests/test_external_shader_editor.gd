@@ -13,6 +13,7 @@ func _init() -> void:
 	_test_tokenizer()
 	_test_argument_building()
 	_test_macos_bundle_arguments()
+	_test_command_path_resolution()
 	_test_shader_error_meta_parsing()
 	_test_callable_method_inspection()
 
@@ -108,6 +109,27 @@ func _test_macos_bundle_arguments() -> void:
 			"/tmp/Shader Project/test shader.gdshader",
 		]),
 		"macOS bundle launcher preserves all configured Exec Flags arguments"
+	)
+
+
+func _test_command_path_resolution() -> void:
+	var launcher := LauncherScript.new()
+	var godot_executable := OS.get_executable_path()
+	var executable_directory := godot_executable.get_base_dir()
+	var executable_name := godot_executable.get_file()
+
+	_assert_equal(
+		launcher.resolve_command_path(executable_name, executable_directory),
+		godot_executable.simplify_path(),
+		"command resolver finds an executable on PATH"
+	)
+	_assert_equal(
+		launcher.resolve_command_path(
+			"definitely-missing-external-shader-editor-command",
+			executable_directory
+		),
+		"",
+		"command resolver rejects a missing command"
 	)
 
 

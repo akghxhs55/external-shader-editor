@@ -139,8 +139,8 @@ func _on_filesystem_tree_item_activated() -> void:
 		var selected_item := tree.get_selected() if tree != null else null
 		var path := str(selected_item.get_metadata(0)) if selected_item != null else ""
 		if _launcher != null and _is_supported_shader_path(path):
-			_launcher.open_shader_file(path)
-			return
+			if _launcher.open_shader_file(path):
+				return
 
 	_call_original(hook, [])
 
@@ -153,8 +153,8 @@ func _on_filesystem_list_item_activated(index: int) -> void:
 		if file_list != null and index >= 0 and index < file_list.item_count:
 			path = str(file_list.get_item_metadata(index))
 		if _launcher != null and _is_supported_shader_path(path):
-			_launcher.open_shader_file(path)
-			return
+			if _launcher.open_shader_file(path):
+				return
 
 	_call_original(hook, [index])
 
@@ -163,12 +163,12 @@ func _on_output_meta_clicked(meta: Variant) -> void:
 	var hook := _find_hook_for_replacement(_on_output_meta_clicked)
 	var location := parse_shader_error_meta(str(meta))
 	if _launcher != null and bool(location["valid"]):
-		_launcher.open_shader_file(
+		if _launcher.open_shader_file(
 			str(location["path"]),
 			int(location["line"]),
 			int(location["column"])
-		)
-		return
+		):
+			return
 
 	_call_original(hook, [meta])
 
