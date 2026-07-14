@@ -1,5 +1,8 @@
 # External Shader Editor
 
+![Config Screenshot](images/config.png)
+![Menu Screenshot](images/menu.png)
+
 External Shader Editor is a Godot 4.x editor plugin that opens `.gdshader` and `.gdshaderinc` files in a configurable external editor from the FileSystem dock and shader error links.
 
 ## Installation and activation
