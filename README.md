@@ -26,6 +26,8 @@ All supported shader files in a multi-selection are opened. Unsupported paths in
 
 Open **Editor > Editor Settings** and search for `external_shader_editor`. The settings are editor-wide.
 
+If a plugin setting is not visible in **Editor Settings**, enable **Advanced Settings** first.
+
 | Setting                                 | Purpose                                                                                            |
 |-----------------------------------------|----------------------------------------------------------------------------------------------------|
 | `external_shader_editor/default_editor` | `External Editor` or `Godot Editor`; controls double-clicks and error links. Defaults to external. |
