@@ -5,6 +5,7 @@ const LauncherScript := preload("res://addons/external_shader_editor/external_ed
 const ContextMenuActionsScript := preload("res://addons/external_shader_editor/shader_context_menu_actions.gd")
 const PluginScript := preload("res://addons/external_shader_editor/external_shader_editor_plugin.gd")
 const InterceptorScript := preload("res://addons/external_shader_editor/editor_open_interceptor.gd")
+const SettingsScript := preload("res://addons/external_shader_editor/external_shader_editor_settings.gd")
 
 var _failure_count := 0
 
@@ -17,6 +18,7 @@ func _init() -> void:
 	_test_shader_error_meta_parsing()
 	_test_callable_method_inspection()
 	_test_context_menu_labels()
+	_test_initial_settings()
 
 	if _failure_count == 0:
 		print("External Shader Editor tests passed.")
@@ -177,6 +179,60 @@ func _test_context_menu_labels() -> void:
 		ContextMenuActionsScript.get_menu_label_for_default(false),
 		"Open Shader in External Editor",
 		"Godot default exposes the external editor context action"
+	)
+
+
+func _test_initial_settings() -> void:
+	var imported := SettingsScript.get_initial_settings(
+		true,
+		"/Applications/Example Editor.app",
+		"--goto {file}:{line}:{col}",
+		"code",
+		"{project} --goto {file}:{line}:{col}"
+	)
+	_assert_equal(
+		imported["default_editor"],
+		SettingsScript.DEFAULT_EDITOR_EXTERNAL,
+		"Godot external-editor usage selects the external shader editor"
+	)
+	_assert_equal(
+		imported["editor_preset"],
+		SettingsScript.PRESET_CUSTOM,
+		"Godot external-editor settings use the Custom preset"
+	)
+	_assert_equal(
+		imported["exec_path"],
+		"/Applications/Example Editor.app",
+		"Godot external-editor Exec Path is copied"
+	)
+	_assert_equal(
+		imported["exec_flags"],
+		"--goto {file}:{line}:{col}",
+		"Godot external-editor Exec Flags are copied"
+	)
+
+	var godot_default := SettingsScript.get_initial_settings(
+		false,
+		"ignored-editor",
+		"ignored-flags",
+		"code",
+		"{project} --goto {file}:{line}:{col}"
+	)
+	_assert_equal(
+		godot_default["default_editor"],
+		SettingsScript.DEFAULT_EDITOR_GODOT,
+		"disabled Godot external editor selects the Godot shader editor"
+	)
+	_assert_equal(
+		godot_default["editor_preset"],
+		SettingsScript.PRESET_VS_CODE,
+		"disabled Godot external editor keeps VS Code as the fallback preset"
+	)
+	_assert_equal(godot_default["exec_path"], "code", "fallback Exec Path is retained")
+	_assert_equal(
+		godot_default["exec_flags"],
+		"{project} --goto {file}:{line}:{col}",
+		"fallback Exec Flags are retained"
 	)
 
 

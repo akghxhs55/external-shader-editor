@@ -26,39 +26,38 @@ func initialize(editor_settings: EditorSettings) -> void:
 	_editor_settings = editor_settings
 
 	var godot_external_settings := _read_godot_external_editor_settings()
-	var should_import_godot_settings: bool = bool(godot_external_settings["valid"])
-	var default_preset := PRESET_CUSTOM if should_import_godot_settings else PRESET_VS_CODE
-	var preset_defaults := get_preset_defaults(default_preset)
-	var default_exec_path: String = preset_defaults["exec_path"]
-	var default_exec_flags: String = preset_defaults["exec_flags"]
-
-	if should_import_godot_settings:
-		default_exec_path = godot_external_settings["exec_path"]
-		default_exec_flags = godot_external_settings["exec_flags"]
+	var fallback_defaults := get_preset_defaults(PRESET_VS_CODE)
+	var initial_settings := get_initial_settings(
+		bool(godot_external_settings["enabled"]),
+		str(godot_external_settings["exec_path"]),
+		str(godot_external_settings["exec_flags"]),
+		str(fallback_defaults["exec_path"]),
+		str(fallback_defaults["exec_flags"])
+	)
 
 	_register_setting(
 		KEY_DEFAULT_EDITOR,
-		DEFAULT_EDITOR_EXTERNAL,
+		initial_settings["default_editor"],
 		TYPE_INT,
 		PROPERTY_HINT_ENUM,
 		"External Editor,Godot Editor"
 	)
 	_register_setting(
 		KEY_EDITOR_PRESET,
-		default_preset,
+		initial_settings["editor_preset"],
 		TYPE_INT,
 		PROPERTY_HINT_ENUM,
 		"Custom,Rider,VS Code"
 	)
 	_register_setting(
 		KEY_EXEC_PATH,
-		default_exec_path,
+		initial_settings["exec_path"],
 		TYPE_STRING,
 		PROPERTY_HINT_GLOBAL_FILE
 	)
 	_register_setting(
 		KEY_EXEC_FLAGS,
-		default_exec_flags,
+		initial_settings["exec_flags"],
 		TYPE_STRING,
 		PROPERTY_HINT_PLACEHOLDER_TEXT,
 		"Arguments with {project}, {file}, {line}, {col}, or {column}"
@@ -123,6 +122,29 @@ func get_preset_defaults(preset: int) -> Dictionary:
 			}
 
 
+static func get_initial_settings(
+	use_external_editor: bool,
+	godot_exec_path: String,
+	godot_exec_flags: String,
+	fallback_exec_path: String,
+	fallback_exec_flags: String
+) -> Dictionary:
+	if use_external_editor:
+		return {
+			"default_editor": DEFAULT_EDITOR_EXTERNAL,
+			"editor_preset": PRESET_CUSTOM,
+			"exec_path": godot_exec_path,
+			"exec_flags": godot_exec_flags,
+		}
+
+	return {
+		"default_editor": DEFAULT_EDITOR_GODOT,
+		"editor_preset": PRESET_VS_CODE,
+		"exec_path": fallback_exec_path,
+		"exec_flags": fallback_exec_flags,
+	}
+
+
 func apply_preset(preset: int) -> void:
 	if _editor_settings == null or preset == PRESET_CUSTOM:
 		return
@@ -156,20 +178,18 @@ func _register_setting(
 
 func _read_godot_external_editor_settings() -> Dictionary:
 	if not _editor_settings.has_setting(GODOT_KEY_USE_EXTERNAL_EDITOR):
-		return {"valid": false, "exec_path": "", "exec_flags": ""}
-	if not _editor_settings.has_setting(GODOT_KEY_EXEC_PATH):
-		return {"valid": false, "exec_path": "", "exec_flags": ""}
+		return {"enabled": false, "exec_path": "", "exec_flags": ""}
 
 	var is_enabled := bool(_editor_settings.get_setting(GODOT_KEY_USE_EXTERNAL_EDITOR))
-	var exec_path := str(_editor_settings.get_setting(GODOT_KEY_EXEC_PATH)).strip_edges()
+	var exec_path := ""
+	if _editor_settings.has_setting(GODOT_KEY_EXEC_PATH):
+		exec_path = str(_editor_settings.get_setting(GODOT_KEY_EXEC_PATH))
 	var exec_flags := "{file}"
 	if _editor_settings.has_setting(GODOT_KEY_EXEC_FLAGS):
 		exec_flags = str(_editor_settings.get_setting(GODOT_KEY_EXEC_FLAGS))
-		if exec_flags.strip_edges().is_empty():
-			exec_flags = "{file}"
 
 	return {
-		"valid": is_enabled and not exec_path.is_empty(),
+		"enabled": is_enabled,
 		"exec_path": exec_path,
 		"exec_flags": exec_flags,
 	}

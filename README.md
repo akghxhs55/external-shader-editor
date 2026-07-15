@@ -28,18 +28,18 @@ Open **Editor > Editor Settings** and search for `external_shader_editor`. The s
 
 If a plugin setting is not visible in **Editor Settings**, enable **Advanced Settings** first.
 
-| Setting                                 | Purpose                                                                                            |
-|-----------------------------------------|----------------------------------------------------------------------------------------------------|
-| `external_shader_editor/default_editor` | `External Editor` or `Godot Editor`; controls double-clicks and error links. Defaults to external. |
-| `external_shader_editor/editor_preset`  | `Custom`, `Rider`, or `VS Code`; fills the two execution settings when selected.                   |
-| `external_shader_editor/exec_path`      | Executable, command, or macOS `.app` bundle path.                                                  |
-| `external_shader_editor/exec_flags`     | Command-line argument template with quote and placeholder support.                                 |
+| Setting                                 | Purpose                                                                                                                         |
+|-----------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| `external_shader_editor/default_editor` | `External Editor` or `Godot Editor`; controls double-clicks and error links. Initially follows Godot's external-editor setting. |
+| `external_shader_editor/editor_preset`  | `Custom`, `Rider`, or `VS Code`; fills the two execution settings when selected.                                                |
+| `external_shader_editor/exec_path`      | Executable, command, or macOS `.app` bundle path.                                                                               |
+| `external_shader_editor/exec_flags`     | Command-line argument template with quote and placeholder support.                                                              |
 
 Presets are only editable starting-point helpers. Selecting Rider or VS Code writes suggested values to **Exec Path** and **Exec Flags** once at selection time. You may freely edit those values afterward. The preset is not a source of truth, and editing execution values does not automatically switch it to Custom.
 
 To reapply the currently displayed preset after manual edits, select Custom and then select that preset again.
 
-On first initialization only, the plugin copies Godot's built-in script external-editor settings when `text_editor/external/use_external_editor` is enabled and its Exec Path is non-empty. The shader settings remain independent afterward and the plugin never modifies Godot's script editor settings. If no usable script external-editor settings exist, the initial preset is VS Code.
+On first initialization only, the plugin follows Godot's built-in `text_editor/external/use_external_editor` setting. When enabled, **Default Editor** is initialized to **External Editor** and the script editor's Exec Path and Exec Flags are copied into the plugin's Custom preset. When disabled, **Default Editor** is initialized to **Godot Editor** and the initial external-editor preset is VS Code. The shader settings remain independent afterward and the plugin never modifies Godot's script editor settings.
 
 ## Placeholders and quoting
 
