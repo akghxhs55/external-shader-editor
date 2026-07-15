@@ -1,0 +1,127 @@
+name: Release
+run-name: Release v${{ inputs.version }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version without the v prefix (for example, 1.0.0)
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate release version
+        env:
+          VERSION: ${{ inputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "Releases must be created from the main branch, not $GITHUB_REF."
+            exit 1
+          fi
+
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Version must use the X.Y.Z format. Received: $VERSION"
+            exit 1
+          fi
+
+          plugin_version=$(sed -n 's/^version="\([^"]*\)"$/\1/p' addons/external_shader_editor/plugin.cfg)
+          if [[ "$VERSION" != "$plugin_version" ]]; then
+            echo "Input version $VERSION does not match plugin.cfg version $plugin_version."
+            exit 1
+          fi
+
+          echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=v$VERSION" >> "$GITHUB_ENV"
+          echo "RELEASE_ARCHIVE=dist/external-shader-editor-$VERSION.zip" >> "$GITHUB_ENV"
+
+      - name: Check for an existing release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Tag $RELEASE_TAG already exists."
+            exit 1
+          fi
+
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Release $RELEASE_TAG already exists."
+            exit 1
+          fi
+
+      - name: Set up Godot
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.7.0
+          use-dotnet: false
+          include-templates: false
+
+      - name: Run tests
+        run: godot --headless --path . --script tests/test_external_shader_editor.gd
+
+      - name: Create release archive
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p dist
+          git archive \
+            --format=zip \
+            --output="$RELEASE_ARCHIVE" \
+            HEAD \
+            addons/external_shader_editor \
+            LICENSE \
+            README.md
+
+      - name: Verify release archive
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          expected_files=$(mktemp)
+          archived_files=$(mktemp)
+
+          git ls-tree -r --name-only HEAD -- \
+            addons/external_shader_editor \
+            LICENSE \
+            README.md \
+            | sort > "$expected_files"
+
+          unzip -Z1 "$RELEASE_ARCHIVE" \
+            | sed '/\/$/d' \
+            | sort > "$archived_files"
+
+          diff -u "$expected_files" "$archived_files"
+          unzip -t "$RELEASE_ARCHIVE"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          gh release create "$RELEASE_TAG" "$RELEASE_ARCHIVE" \
+            --target "$GITHUB_SHA" \
+            --title "$RELEASE_TAG" \
+            --generate-notes
