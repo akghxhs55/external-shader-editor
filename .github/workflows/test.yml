@@ -1,0 +1,43 @@
+name: Tests
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Godot ${{ matrix.godot-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - godot-version: 4.0.4
+            os: ubuntu-latest
+          - godot-version: 4.3.0
+            os: ubuntu-latest
+          - godot-version: 4.7.0
+            os: ubuntu-latest
+          - godot-version: 4.7.0
+            os: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Godot
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: ${{ matrix.godot-version }}
+          use-dotnet: false
+          include-templates: false
+
+      - name: Show Godot version
+        run: godot --version
+
+      - name: Run tests
+        run: godot --headless --path . --script tests/test_external_shader_editor.gd
