@@ -84,14 +84,16 @@ jobs:
         run: |
           set -euo pipefail
 
-          mkdir -p dist
-          git archive \
-            --format=zip \
-            --output="$RELEASE_ARCHIVE" \
-            HEAD \
-            addons/external_shader_editor \
-            LICENSE \
-            README.md
+          staging_directory="$RUNNER_TEMP/external-shader-editor-release"
+          archive_path="$GITHUB_WORKSPACE/$RELEASE_ARCHIVE"
+
+          mkdir -p "$staging_directory" "$(dirname "$archive_path")"
+          git archive HEAD addons/external_shader_editor \
+            | tar -x -C "$staging_directory"
+          cp LICENSE README.md "$staging_directory/addons/external_shader_editor/"
+
+          cd "$staging_directory"
+          zip -r "$archive_path" addons
 
       - name: Verify release archive
         shell: bash
@@ -101,11 +103,11 @@ jobs:
           expected_files=$(mktemp)
           archived_files=$(mktemp)
 
-          git ls-tree -r --name-only HEAD -- \
-            addons/external_shader_editor \
-            LICENSE \
-            README.md \
-            | sort > "$expected_files"
+          {
+            git ls-tree -r --name-only HEAD -- addons/external_shader_editor
+            echo "addons/external_shader_editor/LICENSE"
+            echo "addons/external_shader_editor/README.md"
+          } | sort > "$expected_files"
 
           unzip -Z1 "$RELEASE_ARCHIVE" \
             | sed '/\/$/d' \
