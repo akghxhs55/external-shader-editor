@@ -3,15 +3,32 @@
 ![Config Screenshot](images/config.png)
 ![Menu Screenshot](images/menu.png)
 
+[![MIT License](https://img.shields.io/badge/License-MIT-orange.svg)](https://opensource.org/licenses/MIT)
+[![Tests](https://github.com/akghxhs55/external-shader-editor/actions/workflows/test.yml/badge.svg)](https://github.com/akghxhs55/external-shader-editor/actions/workflows/test.yml)
+
 External Shader Editor is a Godot 4.x editor plugin that opens `.gdshader` and `.gdshaderinc` files in a configurable external editor from the FileSystem dock and shader error links.
 
 ---
 
 ## Installation and activation
 
-1. Copy `external_shader_editor/` into the project's `addons/` directory.
-2. Open **Project > Project Settings > Plugins**.
-3. Enable **External Shader Editor**.
+### Install from Godot
+
+1. Open your project in Godot and go to **Asset Library** or **Asset Store**.
+2. Search for **External Shader Editor**.
+3. Uncheck **Ignore asset root**, then download the plugin into the project.
+
+You can also view the plugin directly on the [Godot Asset Store](https://store.godotengine.org/asset/jaehoyi/external-shader-editor/) or in the [Godot Asset Library](https://godotengine.org/asset-library/asset/5350).
+
+### Install from GitHub Releases
+
+1. Download the latest plugin package from [GitHub Releases](https://github.com/akghxhs55/external-shader-editor/releases).
+2. Extract it and copy `addons/external_shader_editor/` into the project's `addons/` directory.
+
+### Activate the plugin
+
+1. Open **Project > Project Settings > Plugins**.
+2. Enable **External Shader Editor**.
 
 ## Usage
 
